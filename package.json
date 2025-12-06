@@ -9,15 +9,16 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@sendgrid/mail": "^8.1.6",
     "@stripe/stripe-js": "^5.4.0",
     "login": "^0.8.0",
     "lucide-react": "^0.556.0",
-    "next": "^16.0.7",
+    "next": "15.5.4",
     "next.js": "^1.0.3",
     "qrcode": "^1.5.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "stripe": "^20.0.0"
   },
   "devDependencies": {
