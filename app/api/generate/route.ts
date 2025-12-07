@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import QRCode from 'qrcode';
+
 export const runtime = 'edge';
+
 export async function POST(request: Request) {
   try {
     const { url, prompt, mode } = await request.json();
