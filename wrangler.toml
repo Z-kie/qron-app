@@ -1,5 +1,4 @@
-name = "qron-app-fresh"
+name = "qron-app"
 compatibility_date = "2024-12-06"
 pages_build_output_dir = ".vercel/output/static"
-
 command = "npx @cloudflare/next-on-pages@1"
