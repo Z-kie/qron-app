@@ -1,4 +1,7 @@
 name = "qron-app"
 compatibility_date = "2024-12-06"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
+
+[build]
 command = "npx @cloudflare/next-on-pages@1"
