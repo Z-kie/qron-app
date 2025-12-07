@@ -4,9 +4,6 @@ export const runtime = 'edge';
 
 export async function POST(request: Request) {
   try {
-    // Dynamic import to avoid build-time issues
-    const QRCode = (await import('qrcode')).default;
-    
     const { url, prompt, mode } = await request.json();
 
     if (!url || !prompt || !mode) {
@@ -16,23 +13,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate basic QR code as base
-    const qrDataUrl = await QRCode.toDataURL(url, {
-      errorCorrectionLevel: 'H',
-      width: 512,
-      margin: 2,
-    });
+    // For now, just return a placeholder
+    // We'll use a QR code generation service instead
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${encodeURIComponent(url)}`;
 
-    // For preview, return watermarked version
     return NextResponse.json({
-      imageUrl: qrDataUrl,
+      imageUrl: qrApiUrl,
       message: 'Preview generated - pay to get high-res artistic version',
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Generation error:', error);
     return NextResponse.json(
-      { error: 'Failed to generate QR code' },
+      { error: error.message || 'Failed to generate QR code' },
       { status: 500 }
     );
   }
