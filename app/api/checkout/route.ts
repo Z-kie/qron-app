@@ -1,35 +1,39 @@
 import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
 
 export const runtime = 'edge';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia' as any,
-});
-
-const PRICES: { [key: string]: number } = {
-  classic: 500,
-  stereographic: 1000,
-  kinetic: 1000,
-  holographic: 1500,
-  phantom: 1500,
-  cascade: 1200,
-  prism: 1200,
-  nebula: 1000,
-  video: 3000,
-};
-
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { mode, url, prompt, email } = body;
+    // Dynamic import to avoid build-time initialization
+    const Stripe = (await import('stripe')).default;
+    
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2024-12-18.acacia' as any,
+    });
 
-    console.log('Checkout request:', { mode, url, email });
+    const { mode, url, prompt } = await request.json();
 
-    const priceInCents = PRICES[mode] || 1500;
-    const priceInDollars = priceInCents / 100;
+    if (!mode || !url || !prompt) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
 
-    // Create Stripe Checkout Session
+    const prices: Record<string, number> = {
+      classic: 5,
+      '3d': 10,
+      motion: 10,
+      nebula: 10,
+      cascade: 12,
+      prism: 12,
+      holographic: 15,
+      phantom: 15,
+      video: 30,
+    };
+
+    const priceInCents = (prices[mode] || 10) * 100;
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -37,8 +41,8 @@ export async function POST(request: Request) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `QRON ${mode.charAt(0).toUpperCase() + mode.slice(1)} QR Code`,
-              description: `AI-generated QR code for ${url}`,
+              name: `QRON ${mode.toUpperCase()} QR Code`,
+              description: `AI-generated QR code pointing to: ${url}`,
             },
             unit_amount: priceInCents,
           },
@@ -46,9 +50,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?canceled=true`,
-      customer_email: email,
+      success_url: `${request.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${request.headers.get('origin')}`,
       metadata: {
         mode,
         url,
@@ -56,22 +59,11 @@ export async function POST(request: Request) {
       },
     });
 
-    console.log('Session created:', session.id);
-    console.log('Checkout URL:', session.url);
-
-    return NextResponse.json({ 
-      success: true,
-      sessionId: session.id, 
-      url: session.url 
-    });
-    
-  } catch (error: any) {
-    console.error('Stripe checkout error:', error);
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.error('Checkout error:', error);
     return NextResponse.json(
-      { 
-        success: false,
-        error: error.message || 'Payment setup failed' 
-      },
+      { error: 'Failed to create checkout session' },
       { status: 500 }
     );
   }

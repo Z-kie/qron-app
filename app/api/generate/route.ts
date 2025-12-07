@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
-import QRCode from 'qrcode';
 
 export const runtime = 'edge';
 
 export async function POST(request: Request) {
   try {
+    // Dynamic import to avoid build-time issues
+    const QRCode = (await import('qrcode')).default;
+    
     const { url, prompt, mode } = await request.json();
 
     if (!url || !prompt || !mode) {
