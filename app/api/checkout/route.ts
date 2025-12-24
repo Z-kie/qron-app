@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { PLANS } from '@/lib/plans';
 
 export const runtime = 'edge';
 
@@ -8,31 +9,28 @@ export async function POST(request: Request) {
     const Stripe = (await import('stripe')).default;
     
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2024-12-18.acacia' as any,
+      apiVersion: '2024-06-20',
     });
 
-    const { mode, url, prompt } = await request.json();
+    const { mode, email } = await request.json();
 
-    if (!mode || !url || !prompt) {
+    if (!mode) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
+    
+    const plan = PLANS.find(p => p.id === mode);
 
-    const prices: Record<string, number> = {
-      classic: 5,
-      '3d': 10,
-      motion: 10,
-      nebula: 10,
-      cascade: 12,
-      prism: 12,
-      holographic: 15,
-      phantom: 15,
-      video: 30,
-    };
+    if (!plan) {
+        return NextResponse.json(
+            { error: 'Invalid plan' },
+            { status: 400 }
+        );
+    }
 
-    const priceInCents = (prices[mode] || 10) * 100;
+    const priceInCents = plan.price * 100;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -41,8 +39,8 @@ export async function POST(request: Request) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `QRON ${mode.toUpperCase()} QR Code`,
-              description: `AI-generated QR code pointing to: ${url}`,
+              name: `QRON ${plan.name}`,
+              description: `AI-generated QR code pack`,
             },
             unit_amount: priceInCents,
           },
@@ -53,10 +51,9 @@ export async function POST(request: Request) {
       success_url: `${request.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.headers.get('origin')}`,
       metadata: {
-        mode,
-        url,
-        prompt,
+        planId: plan.id,
       },
+      customer_email: email,
     });
 
     return NextResponse.json({ url: session.url });

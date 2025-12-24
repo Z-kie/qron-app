@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -34,12 +35,12 @@ function SuccessContent() {
           </div>
 
           <div className="space-y-3">
-            <a
+            <Link
               href="/"
               className="block w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition text-center"
             >
               Generate Another QR
-            </a>
+            </Link>
             
             {sessionId && (
               <p className="text-xs text-slate-400">
