@@ -5,6 +5,7 @@ import { Sparkles, Download, CreditCard, CheckCircle } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { MODES, FalaiPreset, QRONMode } from '@/lib/types';
 import { PLANS } from '@/lib/plans';
+import { StaticImageGallery } from '@/components/StaticImageGallery';
 
 export default function Home() {
   const supabase = createClient();
@@ -120,8 +121,16 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      <div className="container mx-auto px-4 py-16 max-w-6xl">
+    <div className="min-h-screen relative overflow-hidden text-white">
+      <video
+        className="absolute inset-0 object-cover w-full h-full z-0"
+        src="/hero-qron-flow-1920x1080.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+      ></video>
+      <div className="container mx-auto px-4 py-16 max-w-6xl relative z-10">
 
         {/* Header */}
         <div className="text-center mb-12">
@@ -284,44 +293,104 @@ export default function Home() {
               </a>
             </div>
           )}
+        </div> {/* End of Generator Section */}
+
+        {/* Artsy Presets Gallery */}
+        <StaticImageGallery
+          title="Artsy Presets"
+          description="Explore a selection of our beautifully designed QRON presets."
+          images={[
+            { src: '/media/gallery-static-portal-1080.png', alt: 'Centered scannable QR with simple cyan/blue glowing ring.', width: 1080, height: 1080 },
+            { src: '/media/gallery-chromatic-portal-1080.png', alt: 'Chromatic portal QR code.', width: 1080, height: 1080 },
+          ]}
+        />
+
+        {/* Business Use Cases Gallery */}
+        <StaticImageGallery
+          title="Business Use Cases"
+          description="See how QRONs can be applied across various business contexts."
+          images={[
+            { src: '/media/gallery-event-poster-1350x1080.png', alt: 'Wooden table with table-tent sign and vibrant QRON QR.', width: 1350, height: 1080 },
+            { src: '/media/gallery-event-badge-1080.png', alt: 'Night city wall poster with glowing QR portal CTA bottom.', width: 1080, height: 1080 },
+            { src: '/media/gallery-ecommerce-card-1080.png', alt: 'Lanyard badge in hand with chromatic QRON.', width: 1080, height: 1080 },
+            { src: '/media/gallery-creator-merch-1080.png', alt: 'Tech gadget product card with blue/purple living QR corner.', width: 1080, height: 1080 },
+          ]}
+        />
+
+        <div className="relative text-center mb-12 py-16 rounded-2xl overflow-hidden" style={{ backgroundImage: 'url("/media/pricing-background-soft-grid-2560x1440.png")', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"></div>
+            <h2 className="relative z-10 text-4xl font-bold text-white mb-8">Choose Your Plan</h2>
+            <div className="relative z-10 grid md:grid-cols-3 gap-8 mb-16 px-4">
+            {PLANS.map((plan) => (
+                <div key={plan.id} className={`bg-slate-800/50 backdrop-blur-lg rounded-2xl p-8 border ${plan.id === userTier ? 'border-purple-500' : 'border-purple-500/20'} shadow-2xl flex flex-col`}>
+                    <div className="mb-4">
+                        <Image
+                            src={`/media/pricing-${plan.id}-icon-512.png`}
+                            alt={`${plan.name} plan icon`}
+                            width={80}
+                            height={80}
+                            className="mx-auto"
+                        />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-4">{plan.name}</h2>
+                    {plan.price === 0 ? (
+                    <p className="text-5xl font-bold mb-6">Free</p>
+                    ) : (
+                    <p className="text-5xl font-bold mb-6">${plan.price}<span className="text-lg font-normal">{plan.price_suffix}</span></p>
+                    )}
+                    <ul className="space-y-4 mb-8 text-purple-200 flex-grow">
+                    {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-center">
+                        <CheckCircle className="w-5 h-5 mr-3 text-green-400" />
+                        {feature}
+                        </li>
+                    ))}
+                    </ul>
+                    <button
+                    onClick={() => handleUpgrade(plan.id)}
+                    className={`w-full font-bold py-4 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                        plan.id === userTier
+                        ? 'bg-purple-700 text-white cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                    }`}
+                    disabled={plan.id === userTier}
+                    >
+                    <CreditCard className="w-5 h-5" />
+                    {plan.id === userTier ? 'Current Plan' : plan.cta}
+                    </button>
+                </div>
+            ))}
+            </div>
         </div>
 
-        {/* Pricing Plans */}
-        <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-8">Choose Your Plan</h2>
-        </div>
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {PLANS.map((plan) => (
-            <div key={plan.id} className={`bg-slate-800/50 backdrop-blur-lg rounded-2xl p-8 border ${plan.id === userTier ? 'border-purple-500' : 'border-purple-500/20'} shadow-2xl flex flex-col`}>
-              <h2 className="text-3xl font-bold text-white mb-4">{plan.name}</h2>
-              {plan.price === 0 ? (
-                <p className="text-5xl font-bold mb-6">Free</p>
-              ) : (
-                <p className="text-5xl font-bold mb-6">${plan.price}<span className="text-lg font-normal">{plan.price_suffix}</span></p>
-              )}
-              <ul className="space-y-4 mb-8 text-purple-200 flex-grow">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-center">
-                    <CheckCircle className="w-5 h-5 mr-3 text-green-400" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => handleUpgrade(plan.id)}
-                className={`w-full font-bold py-4 rounded-lg transition-all flex items-center justify-center gap-2 ${
-                  plan.id === userTier
-                    ? 'bg-purple-700 text-white cursor-not-allowed'
-                    : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-                }`}
-                disabled={plan.id === userTier}
-              >
-                <CreditCard className="w-5 h-5" />
-                {plan.id === userTier ? 'Current Plan' : plan.cta}
-              </button>
             </div>
-          ))}
         </div>
+
+        {/* How It Works / Docs */}
+        <section className="py-16">
+            <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold text-white mb-4">How It Works</h2>
+                <p className="text-xl text-purple-200 font-light max-w-2xl mx-auto">
+                    Understand the seamless flow from URL to a scannable, intelligent QRON.
+                </p>
+            </div>
+            <div className="flex flex-col items-center space-y-8">
+                <Image
+                    src="/media/docs-flow-1080.png"
+                    alt="Flow: URL to AI QR Art to Scan to Analytics"
+                    width={1080}
+                    height={1080}
+                    className="rounded-lg shadow-lg max-w-full h-auto"
+                />
+                <Image
+                    src="/media/docs-scannability-1080.png"
+                    alt="Plain QR vs Living QRON side-by-side comparison with scan checkmarks"
+                    width={1080}
+                    height={1080}
+                    className="rounded-lg shadow-lg max-w-full h-auto"
+                />
+            </div>
+        </section>
 
         {/* Trust Signals */}
         <div className="mt-8 text-center space-y-2">
